@@ -1,7 +1,7 @@
 /**
  * 
  */
-package properties;
+package timmeeyLib.properties;
 
 import java.io.IOException;
 import java.util.HashMap;

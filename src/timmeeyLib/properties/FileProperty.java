@@ -1,4 +1,4 @@
-package properties;
+package timmeeyLib.properties;
 
 import java.io.File;
 import java.io.FileInputStream;
