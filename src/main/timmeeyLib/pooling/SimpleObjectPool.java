@@ -1,7 +1,8 @@
 package timmeeyLib.pooling;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -236,6 +237,13 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	private ObjectPool<K, V> internalRemove(List<K> keys) {
 		for (K k : keys) {
 			V object = poolObjectList.get(k);
+			if (object instanceof Closeable) {
+				try {
+					((Closeable) object).close();
+				} catch (IOException e) {
+					// TODO
+				}
+			}
 			Integer hashToKeyKey = null;
 			synchronized (hashToKey) {
 
