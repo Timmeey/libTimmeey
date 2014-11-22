@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 import timmeeyLib.collection.ListHelper;
@@ -52,7 +53,6 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	private final long idleTimeout;
 	private final long cleanUpTime;
 	private final Verifier<V> verifier;
-	private final Object modificationLock = null;
 	private Timer timer;
 	private boolean isStopped = false;
 
@@ -94,7 +94,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 		this.cleanUpTime = cleanUpTime;
 		if (cleanUpTime > 0 && idleTimeout > 0) {
 			this.timer = new Timer(true);
-			timer.schedule(this, cleanUpTime, cleanUpTime);
+			timer.schedule(this, this.cleanUpTime, cleanUpTime);
 		}
 
 	}
@@ -115,6 +115,43 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 
 	@Override
 	public V borrow(K key) {
+		synchronized (poolObjectList) {
+			return internalBorrow(key);
+		}
+
+	}
+
+	@Override
+	public V borrow(K key, Callable<V> callable) {
+		if (isStopped) {
+			throw new IllegalStateException("Pool was already released");
+		}
+		V object = poolObjectList.get(key);
+		if (object != null && verify(object)) {
+			poolObjectList.remove(key);
+			return object;
+		} else {
+			removeByKey(key);
+			try {
+				object = null;
+				object = callable.call();
+				// Needed so no one can steal the just inserted object, because
+				// borrow with a callable is guaranteed to return exactly the
+				// object which is returned by the callable
+				synchronized (poolObjectList) {
+					this.store(key, object);
+					// Thread.sleep(20); //Can be used to force the test to fail
+					// when the synchronized blocks are removed
+					object = internalBorrow(key);
+				}
+			} catch (Exception e) {
+				throw new NullPointerException("Callable throw an exception");
+			}
+		}
+		return object;
+	}
+
+	private V internalBorrow(K key) {
 		if (isStopped) {
 			throw new IllegalStateException("Pool was already released");
 		}
@@ -236,6 +273,9 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 
 	private ObjectPool<K, V> internalRemove(List<K> keys) {
 		for (K k : keys) {
+			if (k == null) {
+				break;
+			}
 			V object = poolObjectList.get(k);
 			if (object instanceof Closeable) {
 				try {

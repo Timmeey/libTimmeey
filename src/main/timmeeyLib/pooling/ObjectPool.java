@@ -1,5 +1,7 @@
 package timmeeyLib.pooling;
 
+import java.util.concurrent.Callable;
+
 /**
  * Simple object pool. Objects can be stored here to be reused later.
  * 
@@ -16,9 +18,22 @@ public interface ObjectPool<K, V> {
 	 * Borrows a object from the pool.
 	 * 
 	 * @param key
+	 *            the key under which the object should be stored
 	 * @return
 	 */
 	public V borrow(K key);
+
+	/**
+	 * Borrows a object from the pool. The callable is used if the wanted object
+	 * is currently not active in the pool (either lent out or non existent)
+	 * 
+	 * @param key
+	 *            the key under which the object should be stored
+	 * @param callable
+	 *            a callable which will return the wanted object.
+	 * @return
+	 */
+	public V borrow(K key, Callable<V> callable);
 
 	/**
 	 * Stores an object into the pool

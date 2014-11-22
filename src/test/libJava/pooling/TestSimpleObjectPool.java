@@ -3,11 +3,14 @@ package libJava.pooling;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+
+import net.jodah.concurrentunit.Waiter;
 
 import org.junit.Test;
 
@@ -145,7 +148,64 @@ public class TestSimpleObjectPool {
 	}
 
 	@Test
-	public void testThreadSafe() throws InterruptedException {
+	public void testCallableBorrow() {
+		ObjectPool<String, Object> pool = new SimpleObjectPool<String, Object>();
+		String key = "key1";
+		Object obj = new Object();
+		Callable<Object> call = new Callable<Object>() {
+
+			@Override
+			public Object call() throws Exception {
+				return obj;
+			}
+		};
+
+		assertEquals(obj, pool.borrow(key, call));
+		assertNull(pool.borrow(key));
+	}
+
+	@Test
+	public void testCallableObjectSteal() throws InterruptedException {
+		ObjectPool<String, Object> pool = new SimpleObjectPool<String, Object>();
+		String key = "key1";
+		Object obj = new Object();
+		Thread run = new Thread() {
+			// This runnable tries to steal the object from the pool that is
+			// inserted by the borrow call with a callable
+
+			// This trhead should not be allowed to borrow this object ever,
+			// because the borrow(key,callable) method is guaranteed to return
+			// the object returned by the callable
+
+			@Override
+			public void run() {
+				while (true) {
+					pool.borrow(key);
+				}
+
+			}
+		};
+		run.setDaemon(true);
+		run.start();
+		Thread.sleep(50);
+
+		Callable<Object> call = new Callable<Object>() {
+
+			@Override
+			public Object call() throws Exception {
+				return obj;
+			}
+		};
+
+		assertEquals("Object returned by the callable was stolen", obj,
+				pool.borrow(key, call));
+
+	}
+
+	@Test
+	public void testThreadSafe() throws Throwable {
+		final Waiter waiter = new Waiter();
+		final int threads = 100;
 		final ObjectPool<Integer, Object> pool = new SimpleObjectPool<Integer, Object>(
 				5L, 10L, null);
 
@@ -160,52 +220,69 @@ public class TestSimpleObjectPool {
 
 		final List<Thread> runs = new ArrayList<Thread>();
 
-		// for (int i = 0; i < 5; i++) {
-		// runs.add(new Thread() {
-		//
-		// @Override
-		// public void run() {
-		// int counter0 = 0;
-		//
-		// int ranO;
-		// int ranF;
-		// Object obj;
-		// for (long j = 0; j < 80000; j++) {
-		//
-		// ranO = RandomHelper.getRandom(1, 7);
-		// ranF = RandomHelper.getRandom(0, 4);
-		// obj = map.get(ranO);
-		// switch (ranF) {
-		// case 0:
-		// pool.store(ranO, obj);
-		// counter0++;
-		// break;
-		// case 1:
-		// pool.borrow(ranO);
-		// break;
-		// case 2:
-		// pool.giveBack(obj);
-		// break;
-		// case 3:
-		// pool.removeByKey(ranO);
-		// break;
-		// case 4:
-		// pool.removeByObject(obj);
-		// break;
-		// }
-		//
-		// }
-		//
-		// }
-		// });
-		// }
-		//
-		// for (Thread runnable : runs) {
-		// runnable.start();
-		// }
-		for (Thread thread : runs) {
-			thread.join();
+		for (int i = 0; i < threads; i++) {
+			runs.add(new Thread() {
+
+				@Override
+				public void run() {
+					int counter0 = 0;
+
+					int ranO;
+					int ranF;
+					Object obj;
+					for (long j = 0; j < 1000000; j++) {
+
+						ranO = Math.round(RandomHelper.getRandom(1, 7));
+						ranF = Math.round(RandomHelper.getRandom(0, 5));
+						obj = map.get(ranO);
+						switch (ranF) {
+						case 0:
+							pool.store(ranO, obj);
+							counter0++;
+							break;
+						case 1:
+							pool.borrow(ranO);
+							break;
+						case 2:
+							pool.giveBack(obj);
+							break;
+						case 3:
+							pool.removeByKey(ranO);
+							break;
+						case 4:
+							pool.removeByObject(obj);
+							break;
+						case 5:
+							assertNotEquals(null,
+									pool.borrow(ranO, new Callable<Object>() {
+
+										@Override
+										public Object call() throws Exception {
+											return new Object();
+
+										}
+									}));
+							break;
+						}
+
+					}
+					waiter.resume();
+
+				}
+
+			});
+
 		}
+		waiter.expectResumes(threads);
+
+		for (Thread runnable : runs) {
+			runnable.start();
+		}
+		waiter.await();
+
+		// for (Thread thread : runs) {
+		// thread.join();
+		// }
 
 	}
 }
