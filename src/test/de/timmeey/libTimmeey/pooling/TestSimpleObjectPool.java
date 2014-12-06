@@ -205,7 +205,7 @@ public class TestSimpleObjectPool {
 	@Test
 	public void testThreadSafe() throws Throwable {
 		final Waiter waiter = new Waiter();
-		final int threads = 100;
+		final int threads = 5;
 		final ObjectPool<Integer, Object> pool = new SimpleObjectPool<Integer, Object>(
 				5L, 10L, null);
 

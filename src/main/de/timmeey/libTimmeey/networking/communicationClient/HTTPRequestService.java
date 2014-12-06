@@ -2,8 +2,8 @@ package de.timmeey.libTimmeey.networking.communicationClient;
 
 import java.util.concurrent.Future;
 
-import de.timmeey.libTimmeey.networking.HTTPRequest;
-import de.timmeey.libTimmeey.networking.HTTPResponse;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPRequest;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse;
 
 public interface HTTPRequestService {
 

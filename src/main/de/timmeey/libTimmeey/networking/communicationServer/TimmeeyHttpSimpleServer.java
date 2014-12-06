@@ -11,25 +11,32 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.timmeey.libTimmeey.networking.NetSerializer;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.ResponseCode;
 
 public class TimmeeyHttpSimpleServer extends Thread {
+	private static Logger logger = LoggerFactory
+			.getLogger(TimmeeyHttpSimpleServer.class);
 	private ServerSocket serverSocket;
 	private final Map<String, HttpHandler> handlerList = new HashMap<String, HttpHandler>();
 	private final LinkedList<HTTPFilter> filter = new LinkedList<HTTPFilter>();
 	private final NetSerializer gson;
 
 	public TimmeeyHttpSimpleServer(NetSerializer gson) {
+		logger.debug("Create");
 		this.gson = gson;
 
 	}
 
 	public void setServerSocket(ServerSocket server) {
+		logger.debug(
+				"Setting serverSocket, starting server listening on {}:{}",
+				server.getLocalSocketAddress(), server.getLocalPort());
 		this.serverSocket = server;
-		System.out.println("Starting thread");
 		this.start();
-		;
-		System.out.println("Started");
 	}
 
 	/**
@@ -42,28 +49,33 @@ public class TimmeeyHttpSimpleServer extends Thread {
 	 * @return whether the filter lets the request pass
 	 */
 	public TimmeeyHttpSimpleServer registerFilter(HTTPFilter filter) {
+
 		this.filter.addLast(filter);
+		logger.debug("Filter added");
 		return this;
 	}
 
 	public TimmeeyHttpSimpleServer removeFilter(HTTPFilter filter) {
 		this.filter.remove(filter);
+		logger.debug("Filter removed");
 		return this;
 	}
 
 	public TimmeeyHttpSimpleServer registerHandler(String path,
 			HttpHandler handler) {
-		System.out.println("Adding handler: " + path);
 		this.handlerList.put(path, handler);
+		logger.debug("Handler added for: {}", path);
+
 		return this;
 	}
 
 	public void run() {
 		while (true) {
 			try {
-				System.out.println("Waiting for clients");
+				logger.debug("Waiting for Clients");
 				Socket client = this.serverSocket.accept();
-				System.out.println("Woho, got a client");
+				logger.debug("Woho, we got a client: {} {}",
+						client.getInetAddress(), client.getPort());
 				handleClient(client);
 
 			} catch (IOException e) {
@@ -75,6 +87,8 @@ public class TimmeeyHttpSimpleServer extends Thread {
 	}
 
 	private void handleClient(final Socket client) {
+		logger.debug("Creating listening thread for client: {}",
+				client.getInetAddress());
 		new Thread() {
 
 			@Override
@@ -87,43 +101,56 @@ public class TimmeeyHttpSimpleServer extends Thread {
 					client.setSoTimeout(1000 * 60 * 10);
 
 					String line;
-					System.out.println("Waiting for input");
+					logger.trace("Waiting for client {}  input",
+							client.getInetAddress());
 					while ((line = bufRead.readLine()) != null) {
-						System.out.println("Input was: " + line);
+						logger.trace("Got input. Inputline was: {}", line);
 						AnonBitMessage message = gson.fromJson(line,
 								AnonBitMessage.class);
 						HttpContext ctx = new HttpContext(gson,
 								message.getPayloadObject());
 						HttpHandler handler = handlerList
 								.get(message.getPath());
+						logger.trace("Found handler {} for path {}", handler,
+								message.getPath());
 						if (handler != null) {
 							// THERE HAPPENS THE MAGIC
 							// Only calls the actual handler if every filter
 							// said OK
 							if (filterRequestShallPass(message.getPath(), ctx)) {
+								logger.trace("Request passed filters, handling");
 								handler.handle(ctx);
 							} else {
-								if (ctx.getResponseCode() == 0) {
-									ctx.setResponseCode(500);
+								if (ctx.getResponseCode() == null) {
+									logger.trace("Force setting the responsecode to 500");
+									ctx.setResponseCode(ResponseCode.FAILURE);
 								}
 							}
+							logger.trace("Responsecode: {}",
+									ctx.getResponseCode());
+							logger.trace("Writing response: {}",
+									ctx.getResponse());
 							bufWrite.write(ctx.getResponse() + "\n");
 							bufWrite.flush();
+							logger.trace("Wrote response");
 						} else {
-							System.out.println("No handler found");
+							logger.debug(
+									"No handler for {} found. Discarding request and closing connection to client",
+									message.getPath());
 							client.close();
 						}
 
 					}
 
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.debug(
+							"IOException {} while handling client {}, closing connection",
+							e, client.getInetAddress());
+
 					try {
 						client.close();
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						logger.debug("IOException{} while closing socket", e);
 					}
 				}
 			}
@@ -132,6 +159,7 @@ public class TimmeeyHttpSimpleServer extends Thread {
 
 	public void unregister(String path) {
 		handlerList.remove(path);
+		logger.debug("Unregistered handler for {}", path);
 
 	}
 
@@ -139,16 +167,18 @@ public class TimmeeyHttpSimpleServer extends Thread {
 		try {
 			for (HTTPFilter httpFilter : filter) {
 				if (!httpFilter.doFilter(path, ctx)) {
-					System.out.println("Filter: " + httpFilter
-							+ ", prevented the request from passing down");
+					logger.info(
+							"Filter: {} prevented the request for {} from passing down",
+							filter, path);
 					return false;
 				}
 			}
 			return true;
 		} catch (Exception e) {
-			System.out
-					.println("Exceptioon while filtering. abort request handling");
-			e.printStackTrace();
+			logger.warn(
+					"Exception {} while filtering for {}. abort request handling",
+					e, path);
+
 		}
 		return false;
 	}

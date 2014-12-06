@@ -11,14 +11,20 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import de.timmeey.libTimmeey.networking.HTTPRequest;
-import de.timmeey.libTimmeey.networking.HTTPResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.timmeey.libTimmeey.networking.NetSerializer;
 import de.timmeey.libTimmeey.networking.SocketFactory;
 import de.timmeey.libTimmeey.networking.communicationServer.AnonBitMessage;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPRequest;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.ResponseCode;
 import de.timmeey.libTimmeey.pooling.ObjectPool;
 
 public class HTTPRequestHandlerImpl implements HTTPRequestService {
+	private static final Logger logger = LoggerFactory
+			.getLogger(HTTPRequestHandlerImpl.class);
 	protected final SocketFactory anonSocketFactory;
 	protected final NetSerializer gson;
 	private final ExecutorService execPool;
@@ -44,8 +50,8 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 				T result = deserializeResponse(
 						doPost(request.getHost(), request.getPath(),
 								serializeHTTPRequest(request), port), clazz);
-				if (result.getResponseCode() != 200) {
-					System.out.println("Warning, response code was: "
+				if (result.getResponseCode() != ResponseCode.SUCCESS) {
+					logger.debug("Warning, response code was: "
 							+ result.getResponseCode());
 				}
 				return result;
@@ -56,7 +62,7 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 
 	private String doPost(String host, String path, String data, int port)
 			throws UnknownHostException, IOException {
-		System.out.println("Posting " + data + "to " + host + path);
+		logger.trace("Posting " + data + "to " + host + path);
 		Socket server = socketPool.borrow(host + ":" + port,
 				new Callable<Socket>() {
 
@@ -65,7 +71,7 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 						return anonSocketFactory.getSocket(host, port);
 					}
 				});
-		System.out.println(server);
+		logger.trace(server.toString());
 
 		BufferedWriter bufW = new BufferedWriter(new OutputStreamWriter(
 				server.getOutputStream()));

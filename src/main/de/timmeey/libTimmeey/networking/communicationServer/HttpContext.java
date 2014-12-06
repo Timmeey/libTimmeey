@@ -1,7 +1,6 @@
 package de.timmeey.libTimmeey.networking.communicationServer;
 
-import de.timmeey.libTimmeey.networking.HTTPRequest;
-import de.timmeey.libTimmeey.networking.HTTPResponse;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.ResponseCode;
 import de.timmeey.libTimmeey.networking.NetSerializer;
 
 public class HttpContext {
@@ -9,7 +8,7 @@ public class HttpContext {
 	private String payload;
 	private HTTPResponse response = new HTTPResponse();
 
-	private int responseCode;
+	private ResponseCode responseCode;
 
 	public HttpContext(NetSerializer gson, String payloadObject) {
 		this.payload = payloadObject;
@@ -29,12 +28,12 @@ public class HttpContext {
 		return gson.toJson(response);
 	}
 
-	public HttpContext setResponseCode(int responseCode) {
+	public HttpContext setResponseCode(ResponseCode responseCode) {
 		this.responseCode = responseCode;
 		return this;
 	}
 
-	public int getResponseCode() {
+	public ResponseCode getResponseCode() {
 		return this.responseCode;
 	}
 }

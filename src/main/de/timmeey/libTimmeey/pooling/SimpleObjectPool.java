@@ -12,9 +12,10 @@ import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.timmeey.libTimmeey.collection.ListHelper;
-import de.timmeey.libTimmeey.pooling.ObjectPool;
-import de.timmeey.libTimmeey.pooling.Verifier;
 
 /**
  * A very simple object pool. This pool will only return a object once, before
@@ -42,7 +43,8 @@ import de.timmeey.libTimmeey.pooling.Verifier;
  */
 public class SimpleObjectPool<K, V> extends TimerTask implements
 		ObjectPool<K, V>, Runnable {
-
+	private static Logger logger = LoggerFactory
+			.getLogger(SimpleObjectPool.class);
 	private final Map<Integer, K> hashToKey = new ConcurrentHashMap<Integer, K>();
 	private final Map<K, V> poolObjectList = new ConcurrentHashMap<K, V>();
 
@@ -60,6 +62,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	 * Creates a simpleObjectPool without automated Cleanup or verification
 	 */
 	public SimpleObjectPool() {
+		logger.debug("Creating");
 		this.idleTimeout = -1;
 		this.cleanUpTime = -1;
 		this.verifier = null;
@@ -89,10 +92,14 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	 */
 	public SimpleObjectPool(Long idleTimeout, Long cleanUpTime,
 			Verifier<V> verifier) {
+		logger.debug(
+				"Creating with verifier: {} idleTImeout: {} and cleanUpTime: {}",
+				verifier, idleTimeout, cleanUpTime);
 		this.idleTimeout = idleTimeout;
 		this.verifier = verifier;
 		this.cleanUpTime = cleanUpTime;
 		if (cleanUpTime > 0 && idleTimeout > 0) {
+			logger.trace("Enableing cleanUp Thread");
 			this.timer = new Timer(true);
 			timer.schedule(this, this.cleanUpTime, cleanUpTime);
 		}
@@ -101,6 +108,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 
 	@Override
 	public void releasePool() {
+		logger.debug("Releasing pool");
 		this.isStopped = true;
 		this.cancel();
 		synchronized (timeOutMap) {
@@ -115,6 +123,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 
 	@Override
 	public V borrow(K key) {
+		logger.trace("Trying to lend object with key: {}", key);
 		synchronized (poolObjectList) {
 			return internalBorrow(key);
 		}
@@ -126,11 +135,10 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 		if (isStopped) {
 			throw new IllegalStateException("Pool was already released");
 		}
-		V object = poolObjectList.get(key);
-		if (object != null && verify(object)) {
-			poolObjectList.remove(key);
-			return object;
-		} else {
+		logger.trace("Trying to lend object with key: {}, with callable");
+		V object = internalBorrow(key);
+		if (object == null) {
+			logger.trace("Using callable to create object with key: {}", key);
 			removeByKey(key);
 			try {
 				object = null;
@@ -155,11 +163,16 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 		if (isStopped) {
 			throw new IllegalStateException("Pool was already released");
 		}
+
 		V object = poolObjectList.get(key);
 		if (object != null && verify(object)) {
+
 			poolObjectList.remove(key);
 			return object;
 		}
+		logger.trace(
+				"Trying to lend object with key: {}, but no object was found",
+				key);
 		return null;
 	}
 
@@ -168,6 +181,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 		if (isStopped) {
 			throw new IllegalStateException("Pool was already released");
 		}
+		logger.trace("Storing new object to key: {}", key);
 		int hash = objectToPool.hashCode();
 		synchronized (hashToKey) {
 			hashToKey.put(hash, key);
@@ -224,6 +238,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	}
 
 	private void resetIdleTime(K key) {
+		logger.trace("Resetting idletime for object: {}", key);
 		synchronized (timeOutMap) {
 			timeOutMap.put(key, System.currentTimeMillis());
 		}
@@ -231,8 +246,13 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	}
 
 	private void putBack(V object, boolean resetTime) {
+
 		K key = hashToKey.get(object.hashCode());
+		logger.trace(
+				"Object is returned back.The old key is: {}. idleTime Should be resettet: {}",
+				key, resetTime);
 		if (key == null) {
+			logger.debug("Could not find any old key for the returned object, discarding it");
 			return;
 		}
 		poolObjectList.put(key, object);
@@ -244,11 +264,13 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 
 	@Override
 	public void run() {
+		logger.trace("Timed cleanup was triggered");
 		this.cleanUp();
 
 	}
 
 	private void cleanUp() {
+		logger.trace("Cleaning up");
 		long now = System.currentTimeMillis();
 		List<K> keysToRemove = new ArrayList<K>();
 		synchronized (timeOutMap) {
@@ -259,6 +281,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 				}
 			}
 		}
+		logger.trace("Found {} keys to remove", keysToRemove.size());
 		internalRemove(keysToRemove);
 
 	}
@@ -272,6 +295,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	}
 
 	private ObjectPool<K, V> internalRemove(List<K> keys) {
+		logger.trace("Removing {} keys", keys.size());
 		for (K k : keys) {
 			if (k == null) {
 				break;
@@ -279,9 +303,14 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 			V object = poolObjectList.get(k);
 			if (object instanceof Closeable) {
 				try {
+					logger.trace(
+							"Object {} is of type Closable, trying to close it prior to removal",
+							k);
 					((Closeable) object).close();
 				} catch (IOException e) {
-					// TODO
+					logger.info(
+							"Got exception {} during autoclosing of object: {}",
+							e, k);
 				}
 			}
 			Integer hashToKeyKey = null;

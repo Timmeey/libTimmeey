@@ -1,4 +1,4 @@
-package de.timmeey.libTimmeey.networking;
+package de.timmeey.libTimmeey.networking.communicationServer;
 
 import java.util.Map;
 
@@ -19,6 +19,7 @@ public class HTTPRequest<T extends HTTPResponse> {
 		this.host = host;
 		this.path = path;
 		this.type = type;
+		this.authenticationMap = authenticationMap;
 	}
 
 	public Class<T> getResponseType() {
