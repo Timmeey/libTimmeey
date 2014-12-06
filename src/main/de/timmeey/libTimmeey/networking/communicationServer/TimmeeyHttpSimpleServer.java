@@ -51,20 +51,20 @@ public class TimmeeyHttpSimpleServer extends Thread {
 	public TimmeeyHttpSimpleServer registerFilter(HTTPFilter filter) {
 
 		this.filter.addLast(filter);
-		logger.debug("Filter added");
+		logger.info("Filter added");
 		return this;
 	}
 
 	public TimmeeyHttpSimpleServer removeFilter(HTTPFilter filter) {
 		this.filter.remove(filter);
-		logger.debug("Filter removed");
+		logger.info("Filter removed");
 		return this;
 	}
 
 	public TimmeeyHttpSimpleServer registerHandler(String path,
 			HttpHandler handler) {
 		this.handlerList.put(path, handler);
-		logger.debug("Handler added for: {}", path);
+		logger.info("Handler added for: {}", path);
 
 		return this;
 	}
@@ -87,9 +87,8 @@ public class TimmeeyHttpSimpleServer extends Thread {
 	}
 
 	private void handleClient(final Socket client) {
-		logger.debug("Creating listening thread for client: {}",
-				client.getInetAddress());
-		new Thread() {
+
+		Thread thread = new Thread() {
 
 			@Override
 			public void run() {
@@ -154,12 +153,16 @@ public class TimmeeyHttpSimpleServer extends Thread {
 					}
 				}
 			}
-		}.start();
+		};
+		logger.debug("Created listening thread {} for client: {}",
+				thread.getName(), client.getInetAddress());
+
+		thread.start();
 	}
 
 	public void unregister(String path) {
 		handlerList.remove(path);
-		logger.debug("Unregistered handler for {}", path);
+		logger.info("Unregistered handler for {}", path);
 
 	}
 
@@ -177,7 +180,7 @@ public class TimmeeyHttpSimpleServer extends Thread {
 		} catch (Exception e) {
 			logger.warn(
 					"Exception {} while filtering for {}. abort request handling",
-					e, path);
+					e, path, e);
 
 		}
 		return false;
