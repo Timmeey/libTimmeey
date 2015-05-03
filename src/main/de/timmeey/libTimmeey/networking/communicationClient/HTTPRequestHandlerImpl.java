@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import de.timmeey.libTimmeey.networking.NetSerializer;
 import de.timmeey.libTimmeey.networking.SocketFactory;
-import de.timmeey.libTimmeey.networking.communicationServer.AnonBitMessage;
+import de.timmeey.libTimmeey.networking.communicationServer.HTTPMessage;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPRequest;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.ResponseCode;
@@ -77,7 +77,7 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 				server.getOutputStream()));
 		BufferedReader bufR = new BufferedReader(new InputStreamReader(
 				server.getInputStream()));
-		AnonBitMessage msg = new AnonBitMessage(path, data);
+		HTTPMessage msg = new HTTPMessage(path, data);
 
 		bufW.write(gson.toJson(msg) + "\n");
 		bufW.flush();

@@ -104,8 +104,8 @@ public class TimmeeyHttpSimpleServer extends Thread {
 							client.getInetAddress());
 					while ((line = bufRead.readLine()) != null) {
 						logger.trace("Got input. Inputline was: {}", line);
-						AnonBitMessage message = gson.fromJson(line,
-								AnonBitMessage.class);
+						HTTPMessage message = gson.fromJson(line,
+								HTTPMessage.class);
 						HttpContext ctx = new HttpContext(gson,
 								message.getPayloadObject());
 						HttpHandler handler = handlerList

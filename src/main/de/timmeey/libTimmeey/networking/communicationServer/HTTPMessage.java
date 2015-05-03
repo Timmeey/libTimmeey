@@ -1,10 +1,10 @@
 package de.timmeey.libTimmeey.networking.communicationServer;
 
-public class AnonBitMessage {
+public class HTTPMessage {
 	String path;
 	String payloadObject;
 
-	public AnonBitMessage(String path, String payload) {
+	public HTTPMessage(String path, String payload) {
 		this.path = path;
 		this.payloadObject = payload;
 	}
