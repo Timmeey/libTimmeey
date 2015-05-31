@@ -14,14 +14,6 @@ public class HTTPRequest<T extends HTTPResponse> {
 		this.type = type;
 	}
 
-	protected HTTPRequest(String host, String path, Class<T> type,
-			Map<String, String> authenticationMap) {
-		this.host = host;
-		this.path = path;
-		this.type = type;
-		this.authenticationMap = authenticationMap;
-	}
-
 	public Class<T> getResponseType() {
 		return type;
 	}

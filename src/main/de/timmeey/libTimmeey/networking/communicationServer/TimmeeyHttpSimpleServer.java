@@ -20,23 +20,24 @@ import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.Respons
 public class TimmeeyHttpSimpleServer extends Thread {
 	private static Logger logger = LoggerFactory
 			.getLogger(TimmeeyHttpSimpleServer.class);
-	private ServerSocket serverSocket;
+	private final ServerSocket serverSocket;
 	private final Map<String, HttpHandler> handlerList = new HashMap<String, HttpHandler>();
 	private final LinkedList<HTTPFilter> filter = new LinkedList<HTTPFilter>();
 	private final NetSerializer gson;
 
-	public TimmeeyHttpSimpleServer(NetSerializer gson) {
+	public TimmeeyHttpSimpleServer(NetSerializer gson, ServerSocket server) {
 		logger.debug("Create");
 		this.gson = gson;
-
-	}
-
-	public void setServerSocket(ServerSocket server) {
-		logger.debug(
-				"Setting serverSocket, starting server listening on {}:{}",
+		logger.debug("Setting serverSocket for listening on {}:{}",
 				server.getLocalSocketAddress(), server.getLocalPort());
 		this.serverSocket = server;
-		this.start();
+	}
+
+	public TimmeeyHttpSimpleServer startServer() {
+		logger.debug("Starting Server");
+		super.start();
+		logger.info("Server Started");
+		return this;
 	}
 
 	/**

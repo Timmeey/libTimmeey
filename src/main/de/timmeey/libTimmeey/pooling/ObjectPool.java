@@ -32,8 +32,9 @@ public interface ObjectPool<K, V> {
 	 * @param callable
 	 *            a callable which will return the wanted object.
 	 * @return
+	 * @throws Exception
 	 */
-	public V borrow(K key, Callable<V> callable);
+	public V borrow(K key, Callable<V> callable) throws Exception;
 
 	/**
 	 * Stores an object into the pool

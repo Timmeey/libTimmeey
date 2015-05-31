@@ -14,6 +14,7 @@ import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import de.timmeey.libTimmeey.networking.NetSerializer;
 import de.timmeey.libTimmeey.networking.SocketFactory;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPMessage;
@@ -34,15 +35,19 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 			NetSerializer gson, ExecutorService execService,
 			ObjectPool<String, Socket> socketPool) {
 
-		this.execPool = execService;
-		this.gson = gson;
-		this.anonSocketFactory = socketFactory;
-		this.socketPool = socketPool;
+		this.execPool = checkNotNull(execService);
+		this.gson = checkNotNull(gson);
+		this.anonSocketFactory = checkNotNull(socketFactory);
+		this.socketPool = checkNotNull(socketPool);
+		System.out.println(anonSocketFactory);
 
 	}
 
 	public <T extends HTTPResponse> Future<T> send(
 			final HTTPRequest<?> request, final Class<T> clazz, final int port) {
+		checkNotNull(request);
+		checkNotNull(clazz);
+		checkNotNull(port);
 		Callable<T> call = new Callable<T>() {
 
 			public T call() throws Exception {
@@ -51,7 +56,7 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 						doPost(request.getHost(), request.getPath(),
 								serializeHTTPRequest(request), port), clazz);
 				if (result.getResponseCode() != ResponseCode.SUCCESS) {
-					logger.debug("Warning, response code was: "
+					logger.warn("Warning, response code was: "
 							+ result.getResponseCode());
 				}
 				return result;
@@ -61,16 +66,17 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 	}
 
 	private String doPost(String host, String path, String data, int port)
-			throws UnknownHostException, IOException {
+			throws Exception {
 		logger.trace("Posting " + data + "to " + host + path);
 		Socket server = socketPool.borrow(host + ":" + port,
 				new Callable<Socket>() {
 
 					@Override
-					public Socket call() throws Exception {
+					public Socket call() throws IOException {
 						return anonSocketFactory.getSocket(host, port);
 					}
 				});
+		logger.debug("before trace");
 		logger.trace(server.toString());
 
 		BufferedWriter bufW = new BufferedWriter(new OutputStreamWriter(

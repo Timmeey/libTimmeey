@@ -12,6 +12,8 @@ import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,9 +97,9 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 		logger.debug(
 				"Creating with verifier: {} idleTImeout: {} and cleanUpTime: {}",
 				verifier, idleTimeout, cleanUpTime);
-		this.idleTimeout = idleTimeout;
+		this.idleTimeout = checkNotNull(idleTimeout);
 		this.verifier = verifier;
-		this.cleanUpTime = cleanUpTime;
+		this.cleanUpTime = checkNotNull(cleanUpTime);
 		if (cleanUpTime > 0 && idleTimeout > 0) {
 			logger.trace("Enableing cleanUp Thread");
 			this.timer = new Timer(true);
@@ -131,30 +133,28 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	}
 
 	@Override
-	public V borrow(K key, Callable<V> callable) {
+	public V borrow(K key, Callable<V> callable) throws Exception {
 		if (isStopped) {
 			throw new IllegalStateException("Pool was already released");
 		}
-		logger.trace("Trying to lend object with key: {}, with callable");
+		logger.trace("Trying to lend object with key: {}, with callable", key);
 		V object = internalBorrow(key);
 		if (object == null) {
 			logger.trace("Using callable to create object with key: {}", key);
 			removeByKey(key);
-			try {
-				object = null;
-				object = callable.call();
-				// Needed so no one can steal the just inserted object, because
-				// borrow with a callable is guaranteed to return exactly the
-				// object which is returned by the callable
-				synchronized (poolObjectList) {
-					this.store(key, object);
-					// Thread.sleep(20); //Can be used to force the test to fail
-					// when the synchronized blocks are removed
-					object = internalBorrow(key);
-				}
-			} catch (Exception e) {
-				throw new NullPointerException("Callable throw an exception");
+
+			object = null;
+			object = callable.call();
+			// Needed so no one can steal the just inserted object, because
+			// borrow with a callable is guaranteed to return exactly the
+			// object which is returned by the callable
+			synchronized (poolObjectList) {
+				this.store(key, object);
+				// Thread.sleep(20); //Can be used to force the test to fail
+				// when the synchronized blocks are removed
+				object = internalBorrow(key);
 			}
+
 		}
 		return object;
 	}

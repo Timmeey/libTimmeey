@@ -148,7 +148,7 @@ public class TestSimpleObjectPool {
 	}
 
 	@Test
-	public void testCallableBorrow() {
+	public void testCallableBorrow() throws Exception {
 		ObjectPool<String, Object> pool = new SimpleObjectPool<String, Object>();
 		String key = "key1";
 		Object obj = new Object();
@@ -165,7 +165,7 @@ public class TestSimpleObjectPool {
 	}
 
 	@Test
-	public void testCallableObjectSteal() throws InterruptedException {
+	public void testCallableObjectSteal() throws Exception {
 		ObjectPool<String, Object> pool = new SimpleObjectPool<String, Object>();
 		String key = "key1";
 		Object obj = new Object();
@@ -253,15 +253,21 @@ public class TestSimpleObjectPool {
 							pool.removeByObject(obj);
 							break;
 						case 5:
-							assertNotEquals(null,
-									pool.borrow(ranO, new Callable<Object>() {
+							try {
+								assertNotEquals(null, pool.borrow(ranO,
+										new Callable<Object>() {
 
-										@Override
-										public Object call() throws Exception {
-											return new Object();
+											@Override
+											public Object call()
+													throws Exception {
+												return new Object();
 
-										}
-									}));
+											}
+										}));
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 							break;
 						}
 
