@@ -59,6 +59,7 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 	private final Verifier<V> verifier;
 	private Timer timer;
 	private boolean isStopped = false;
+	private int lendOutObjects = 0;
 
 	/**
 	 * Creates a simpleObjectPool without automated Cleanup or verification
@@ -334,6 +335,17 @@ public class SimpleObjectPool<K, V> extends TimerTask implements
 		}
 
 		return this;
+
+	}
+
+	@Override
+	public int totalPoolSize() {
+		return hashToKey.size();
+	}
+
+	@Override
+	public int currentlyLendOutObjects() {
+		return hashToKey.size() - poolObjectList.size();
 
 	}
 }

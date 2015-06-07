@@ -18,7 +18,7 @@ import de.timmeey.libTimmeey.networking.NetSerializer;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.ResponseCode;
 
 public class TimmeeyHttpSimpleServer extends Thread {
-	private static Logger logger = LoggerFactory
+	private static final Logger logger = LoggerFactory
 			.getLogger(TimmeeyHttpSimpleServer.class);
 	private final ServerSocket serverSocket;
 	private final Map<String, HttpHandler> handlerList = new HashMap<String, HttpHandler>();

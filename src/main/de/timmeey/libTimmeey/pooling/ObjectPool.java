@@ -93,4 +93,8 @@ public interface ObjectPool<K, V> {
 	 */
 	public void releasePool();
 
+	public int totalPoolSize();
+
+	public int currentlyLendOutObjects();
+
 }
