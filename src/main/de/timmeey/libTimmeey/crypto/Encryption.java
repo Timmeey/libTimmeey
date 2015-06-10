@@ -7,19 +7,25 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.security.interfaces.RSAPrivateCrtKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Encryption {
+	private static final Logger logger = LoggerFactory
+			.getLogger(Encryption.class);
 
 	public static boolean checkSignature(byte[] valueToCheck,
 			byte[] digitalSignature, PublicKey publicKey)
 			throws NoSuchAlgorithmException, NoSuchProviderException,
 			InvalidKeyException, SignatureException {
+		logger.trace("checkSignature({},{},{})", valueToCheck.length,
+				digitalSignature.length, publicKey.getAlgorithm());
 		if (!publicKey.getAlgorithm().equals("RSA")) {
 			throw new InvalidKeyException("Only RSA keys are supported atm");
 		}
@@ -29,6 +35,7 @@ public class Encryption {
 		signature.update(valueToCheck);
 
 		boolean verified = signature.verify(digitalSignature);
+		logger.trace("Finished checking the Signature. Result was {}", verified);
 		return verified;
 	}
 

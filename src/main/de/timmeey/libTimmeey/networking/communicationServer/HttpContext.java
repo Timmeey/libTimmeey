@@ -1,5 +1,6 @@
 package de.timmeey.libTimmeey.networking.communicationServer;
 
+import de.timmeey.libTimmeey.exceptions.checked.SerializerException;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.ResponseCode;
 import de.timmeey.libTimmeey.networking.NetSerializer;
 
@@ -23,7 +24,7 @@ public class HttpContext {
 		return gson.fromJson(payload, clazz);
 	}
 
-	public String getResponse() {
+	public String getResponse() throws SerializerException {
 		response.setResponseCode(getResponseCode());
 		return gson.toJson(response);
 	}

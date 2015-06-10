@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import de.timmeey.libTimmeey.exceptions.checked.SerializerException;
 import de.timmeey.libTimmeey.networking.NetSerializer;
 import de.timmeey.libTimmeey.networking.SocketFactory;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPMessage;
@@ -87,13 +88,17 @@ public class HTTPRequestHandlerImpl implements HTTPRequestService {
 
 		bufW.write(gson.toJson(msg) + "\n");
 		bufW.flush();
+		logger.debug("Request send, waiting for answer");
 		String answer = bufR.readLine();
+		logger.debug("GOt answer");
+		logger.trace("Answer was: {}", answer);
 		socketPool.giveBack(server);
 		return answer;
 
 	}
 
-	private String serializeHTTPRequest(HTTPRequest<?> req) {
+	private String serializeHTTPRequest(HTTPRequest<?> req)
+			throws SerializerException {
 		return gson.toJson(req);
 	}
 

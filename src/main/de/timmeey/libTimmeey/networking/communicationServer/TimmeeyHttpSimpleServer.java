@@ -14,6 +14,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.timmeey.libTimmeey.exceptions.checked.SerializerException;
 import de.timmeey.libTimmeey.networking.NetSerializer;
 import de.timmeey.libTimmeey.networking.communicationServer.HTTPResponse.ResponseCode;
 
@@ -152,6 +153,15 @@ public class TimmeeyHttpSimpleServer extends Thread {
 					} catch (IOException e1) {
 						logger.debug("IOException{} while closing socket", e);
 					}
+				} catch (SerializerException e) {
+					logger.error("Could not serialize the request", e);
+					try {
+						client.close();
+					} catch (IOException e1) {
+						logger.debug("IOException{} while closing socket", e);
+					}
+				} catch (Exception e) {
+					logger.error("Some exception occured {}", e);
 				}
 			}
 		};
