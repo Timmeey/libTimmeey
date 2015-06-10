@@ -16,8 +16,9 @@ public class HttpContext {
 		this.gson = gson;
 	}
 
-	public void setResponse(HTTPResponse response) {
+	public HttpContext setResponse(HTTPResponse response) {
 		this.response = response;
+		return this;
 	}
 
 	public <T extends HTTPRequest<?>> T getPayload(Class<T> clazz) {
