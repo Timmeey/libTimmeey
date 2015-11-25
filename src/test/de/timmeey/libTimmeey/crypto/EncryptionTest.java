@@ -66,8 +66,8 @@ public class EncryptionTest {
 		String testString = UUID.randomUUID().toString();
 		byte[] signedByte = Encryption.sign(testString.getBytes("UTF-8"),
 				privatKey);
-		String signedString = Base64Helper.byteToString(signedByte);
-		byte[] signedByte1 = Base64Helper.stringToByte(signedString);
+		String signedString = Base64Helper.byteToBase64String(signedByte);
+		byte[] signedByte1 = Base64Helper.base64StringToByte(signedString);
 		assertEquals(true, Encryption.checkSignature(
 				testString.getBytes("UTF-8"), signedByte1, publicKey));
 		String wrongTestString = testString + "j";
