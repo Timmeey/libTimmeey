@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.timmeey</groupId>
 	<artifactId>libJava</artifactId>
-	<version>0.0.1-a</version>
+	<version>0.0.2-a</version>
 	<build>
 		<sourceDirectory>src/main</sourceDirectory>
 		<testSourceDirectory>src/tests</testSourceDirectory>
