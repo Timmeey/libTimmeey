@@ -57,9 +57,24 @@ public class ExecResultWrapper implements Future<Integer> {
 		return timeStarted;
 	}
 	
+	/**
+	 * Gives the already available STDOut as a Stringline array.
+	 * WARNING: Does not wait until execution is complete.
+	 * Make sure to wait for getExitStatus() to return, if you want
+	 * the complete output
+	 * @return the up to now outputted output as a line array
+	 */
 	public List<String> getStdOutLines(){
 		return stdOut.getLines();
 	}
+	
+	/**
+	 * Gives the already available STDErr as a Stringline array.
+	 * WARNING: Does not wait until execution is complete.
+	 * Make sure to wait for getExitStatus() to return, if you want
+	 * the complete output
+	 * @return the up to now outputted output as a line array
+	 */
 	public List<String> getStdErrLines(){
 		return stdErr.getLines();
 	}
