@@ -12,12 +12,52 @@ public class MovingAverage {
 
     public MovingAverage(int size) {
         this.size = size;
-        this.queue = new ArrayDeque<Double>(size);
+        this.queue = new ArrayDeque<>(size);
     }
 
     public void add(double x) {
         total += x;
         queue.add(x);
+        if (queue.size() > size) {
+            total -= queue.poll();
+        } else {
+            count++;
+        }
+    }
+
+    public void add(float x) {
+        total += x;
+        queue.add(x + 0.0);
+        if (queue.size() > size) {
+            total -= queue.poll();
+        } else {
+            count++;
+        }
+    }
+
+    public void add(int x) {
+        total += x;
+        queue.add(x + 0.0);
+        if (queue.size() > size) {
+            total -= queue.poll();
+        } else {
+            count++;
+        }
+    }
+
+    public void add(long x) {
+        total += x;
+        queue.add(x + 0.0);
+        if (queue.size() > size) {
+            total -= queue.poll();
+        } else {
+            count++;
+        }
+    }
+
+    public void add(short x) {
+        total += x;
+        queue.add(x + 0.0);
         if (queue.size() > size) {
             total -= queue.poll();
         } else {
