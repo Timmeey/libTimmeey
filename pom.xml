@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.timmeey</groupId>
     <artifactId>libTimmeey</artifactId>
-    <version>1.0.1-a</version>
+    <version>0.2</version>
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>
