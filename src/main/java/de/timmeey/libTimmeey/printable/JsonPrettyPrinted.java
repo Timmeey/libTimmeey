@@ -1,6 +1,7 @@
 package de.timmeey.libTimmeey.printable;
 
 import java.util.Iterator;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,6 +28,36 @@ public final class JsonPrettyPrinted implements Printed {
     }
 
     @Override
+    public Printed with(final String key, final int value) {
+        this.jsonObject.put(key, value);
+        return this;
+    }
+
+    @Override
+    public Printed with(final String key, final long value) {
+        this.jsonObject.put(key, value);
+        return this;
+    }
+
+    @Override
+    public Printed with(final String key, final boolean value) {
+        this.jsonObject.put(key, value);
+        return this;
+    }
+
+    @Override
+    public Printed with(final String key, final double value) {
+        this.jsonObject.put(key, value);
+        return this;
+    }
+
+    @Override
+    public Printed with(final String key, final float value) {
+        this.jsonObject.put(key, value);
+        return this;
+    }
+
+    @Override
     public Printed with(final String key, final Printable value) {
         this.jsonObject.put(key, ((JsonPrettyPrinted) value.print(new
             JsonPrettyPrinted())).json());
@@ -34,7 +65,12 @@ public final class JsonPrettyPrinted implements Printed {
     }
 
     @Override
-    public Printed onlyList(final Iterator<? extends Printable> value) {
+    public Printed only(final Iterable<? extends Printable> value) {
+        return this.only(value.iterator());
+    }
+
+    @Override
+    public Printed only(final Iterator<? extends Printable> value) {
         value.forEachRemaining(printable -> this.jsonArray.put((
             (JsonPrettyPrinted) printable.print(new JsonPrettyPrinted()))
             .json()));
@@ -42,7 +78,16 @@ public final class JsonPrettyPrinted implements Printed {
     }
 
     @Override
-    public Printed withList(final String key, final Iterator<? extends
+    public Printed with(final String key, final Map<?, ? extends Printable>
+        map) {
+        JSONArray array = new JSONArray();
+        map.forEach((mapKey, mapValue) -> array.put(new JsonPrettyPrinted().with(key,mapValue)));
+        this.jsonObject.put(key, array);
+        return this;
+    }
+
+    @Override
+    public Printed with(final String key, final Iterator<? extends
         Printable> value) {
         JSONArray array = new JSONArray();
         value.forEachRemaining(printable -> array.put(((JsonPrettyPrinted)
