@@ -8,3 +8,6 @@
 /target/
 /.classpath
 /.project
+
+/libJava (1) (de.timmeey).iml
+/.idea/
