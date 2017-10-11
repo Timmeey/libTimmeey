@@ -1,5 +1,6 @@
 package de.timmeey.libTimmeey.sensor.reading;
 
+import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
 import java.time.ZonedDateTime;
 
 /**
@@ -7,9 +8,11 @@ import java.time.ZonedDateTime;
  * @author Tim Hinkes (timmeey@timmeey.de)
  * @version $Id:\$
  */
-public interface Reading<T> {
+public interface Reading {
 
-    T value();
+    UniqueIdentifier id();
+
+    double value();
 
     ZonedDateTime datetime();
 }

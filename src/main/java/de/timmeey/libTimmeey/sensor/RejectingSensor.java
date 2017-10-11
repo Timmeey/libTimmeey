@@ -1,7 +1,9 @@
 package de.timmeey.libTimmeey.sensor;
 
 import de.timmeey.libTimmeey.sensor.reading.Reading;
-import org.cactoos.Func;
+import java.time.ZonedDateTime;
+import lombok.experimental.Delegate;
+import org.cactoos.BiFunc;
 
 /**
  * RejectingSensor.
@@ -9,34 +11,30 @@ import org.cactoos.Func;
  * @version $Id:\$
  * @since 0.2
  */
-public final class RejectingSensor<T> implements Sensor<T> {
+public final class RejectingSensor implements Sensor {
 
-    private final Sensor<T> src;
-    private final Func<Reading<T>, Boolean> guard;
+    @Delegate(excludes = Add.class)
+    private final Sensor src;
+    private final BiFunc<Double, ZonedDateTime, Boolean> guard;
 
-    public RejectingSensor(final Sensor<T> src, final Func<Reading<T>,
-        Boolean> guard) {
+    public RejectingSensor(final Sensor src, final BiFunc<Double,
+        ZonedDateTime, Boolean> guard) {
         this.src = src;
         this.guard = guard;
     }
 
     @Override
-    public void addReading(final Reading<T> reading) throws Exception {
-        if (this.guard.apply(reading)) {
-            this.src.addReading(reading);
+    public Reading addReading(double value, ZonedDateTime datetime) throws
+        Exception {
+        if (this.guard.apply(value, datetime)) {
+            return this.src.addReading(value, datetime);
         } else {
-            throw new IllegalArgumentException("Reading %s did not fulfill " +
+            throw new IllegalArgumentException("Reading did not fulfill " +
                 "requirements");
         }
     }
 
-    @Override
-    public Iterable<Reading<T>> readings() throws Exception {
-        return this.src.readings();
-    }
-
-    @Override
-    public void delete(final Reading<T> reading) throws Exception {
-        this.src.delete(reading);
+    private interface Add {
+        void addReading(double value, ZonedDateTime datetime) throws Exception;
     }
 }
