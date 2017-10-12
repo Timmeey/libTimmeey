@@ -26,6 +26,18 @@ public class SqliForeignKey implements SqlForeignKey {
         this.parentTable = parentTable;
         this.childColumn = childColumn;
         this.parentColumn = parentColumn;
+        this.validate();
+
+    }
+
+    private boolean validate() {
+        if (!parentColumn.isPrimaryIndex()) {
+            if (!parentColumn.hasAttribute(SqliAttribute.UNIQUE.toString())) {
+                throw new IllegalArgumentException("Referencing parent Key " +
+                    "column needs to be either PRIMARY KEY or UNIQUE");
+            }
+        }
+        return true;
     }
 
     String bootstrapQuery() {

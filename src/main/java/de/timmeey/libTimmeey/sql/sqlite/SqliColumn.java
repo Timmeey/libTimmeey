@@ -25,10 +25,15 @@ public class SqliColumn implements SqlColumn<SqliTable> {
     boolean isIndex, final SqliAttribute... attributes) {
         this.name = name;
         this.type = type;
-        this.isIndex = isIndex;
         this.attributes = Arrays.asList(attributes);
         this.parentTable = Optional.empty();
         this.parentColumn = Optional.empty();
+        if (isIndex && this.attributes.stream().anyMatch(a -> a.equals
+            (SqliAttribute.PRIMARY_KEY))) {
+            throw new IllegalArgumentException("Column cannot be index AND " +
+                "primary key at the same time");
+        }
+        this.isIndex = isIndex;
     }
 
     public SqliColumn(final String name, final SqliColumn.SqliteDataType
@@ -36,7 +41,7 @@ public class SqliColumn implements SqlColumn<SqliTable> {
     SqliAttribute... attributes) {
         this.name = name;
         this.type = type;
-        this.isIndex = true;
+        this.isIndex = false;
         this.parentTable = Optional.of(parentTable);
         this.parentColumn = Optional.of(parentColumn);
         this.attributes = Arrays.asList(attributes);
@@ -96,8 +101,7 @@ public class SqliColumn implements SqlColumn<SqliTable> {
 
     Optional<String> asIndexCreationQuery(SqliTable table) {
         if (this.isIndex()) {
-            return Optional.of(String.format("CREATE INDEX %sindex ON %s(%s);" +
-                    "\n",
+            return Optional.of(String.format("CREATE INDEX %sindex ON %s(%s)",
                 this.name(),
                 table.name(),
                 this.name()));
@@ -108,7 +112,7 @@ public class SqliColumn implements SqlColumn<SqliTable> {
     }
 
     Collection<String> attributesAsString() {
-        return this.attributes.stream().map(a -> a.toString()).collect
+        return this.attributes.stream().map(a -> a.representation).collect
             (Collectors.toList());
     }
 

@@ -26,11 +26,13 @@ public interface SqlTable {
             .filter(c -> c.isPrimaryIndex()).findAny();
     }
 
+    Optional<? extends SqlColumn> primaryKey();
+
     String createTableQuery();
 
     String insertQuery();
 
-    String getRowByPrimaryIndexQuery();
+    Optional<String> getRowByPrimaryIndexQuery();
 
     String name();
 }

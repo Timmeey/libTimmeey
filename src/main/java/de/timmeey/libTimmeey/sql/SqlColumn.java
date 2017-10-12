@@ -1,6 +1,7 @@
 package de.timmeey.libTimmeey.sql;
 
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 /**
  * SqlColumn.
@@ -20,6 +21,12 @@ public interface SqlColumn<T extends SqlTable> {
     boolean isIndex();
 
     Optional<? extends SqlForeignKey> foreignKey(T childTable);
+
+    default boolean hasAttribute(String attribute) {
+        return StreamSupport.stream(
+            this.attributes().spliterator(), false)
+            .anyMatch(c -> c.equals(attribute));
+    }
 
 }
 

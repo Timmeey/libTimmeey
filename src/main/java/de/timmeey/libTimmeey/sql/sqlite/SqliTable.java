@@ -5,6 +5,8 @@ import de.timmeey.libTimmeey.sql.SqlTable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,10 +19,21 @@ public class SqliTable implements SqlTable {
 
     private final Collection<SqliColumn> columns;
     private final String name;
+    private final String insertQuery;
+    private final Optional<String> getRowByPrimaryQuery;
 
     public SqliTable(final String name, final SqliColumn... columns) {
         this.columns = Arrays.asList(columns);
         this.name = name;
+        this.insertQuery = String.format("INSERT INTO %s (%s) VALUES(%s)",
+            this.name(), String
+                .join(",", this.columns.stream().map(c -> c.name()).collect
+                    (Collectors.toList())),
+            String.join(", ", this.columns.stream().map(c -> "?").collect
+                (Collectors.toList())));
+
+        this.getRowByPrimaryQuery = primaryKey().map(c -> String.format
+            ("SELECT * FROM %s WHERE %s=?", this.name(), c.name()));
     }
 
     @Override
@@ -29,13 +42,18 @@ public class SqliTable implements SqlTable {
     }
 
     @Override
-    public String insertQuery() {
-        throw new UnsupportedOperationException("#insertQuery()");
+    public Optional<? extends SqlColumn> primaryKey() {
+        return this.columns.stream().filter(c -> c.isPrimaryIndex()).findAny();
     }
 
     @Override
-    public String getRowByPrimaryIndexQuery() {
-        throw new UnsupportedOperationException("#getRowByPrimaryIndexQuery()");
+    public String insertQuery() {
+        return this.insertQuery;
+    }
+
+    @Override
+    public Optional<String> getRowByPrimaryIndexQuery() {
+        return this.getRowByPrimaryQuery;
     }
 
     @Override
@@ -45,15 +63,18 @@ public class SqliTable implements SqlTable {
 
     @Override
     public String createTableQuery() {
+        List<String> parts = new LinkedList<>();
+        parts.addAll(columnsAsStrings());
+        parts.addAll(foreignKeyQuery());
+
         final StringBuilder sb = new StringBuilder();
         sb.append(String.format("CREATE TABLE %s(\n" +
-                "%s,\n" +
-                "%s\n" +
-                ");\n",
+                "   %s\n" +
+                ");\n" +
+                "%s;\n",
             name,
-            String.join(",\n", this.columnsAsStrings()),
-            String.join(",\n", this.indexQueries()),
-            String.join(",\n", this.foreignKeyQuery())
+            String.join(",\n   ", parts),
+            String.join(";\n", indexQueries())
             )
         );
         return sb.toString();
@@ -73,7 +94,7 @@ public class SqliTable implements SqlTable {
     private Collection<String> foreignKeyQuery() {
         return this.columns.stream().map(c -> c.foreignKey(this)).filter
             (Optional
-            ::isPresent).map(Optional::get).map(c -> c.bootstrapQuery())
+                ::isPresent).map(Optional::get).map(c -> c.bootstrapQuery())
             .collect(Collectors.toList());
     }
 }
