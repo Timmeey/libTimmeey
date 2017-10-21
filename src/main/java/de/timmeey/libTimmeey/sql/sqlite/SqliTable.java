@@ -1,6 +1,5 @@
 package de.timmeey.libTimmeey.sql.sqlite;
 
-import de.timmeey.libTimmeey.sql.SqlColumn;
 import de.timmeey.libTimmeey.sql.SqlTable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
  * @author Tim Hinkes (timmeey@timmeey.de)
  * @version $Id:\$
  */
-public class SqliTable implements SqlTable {
+public class SqliTable implements SqlTable<SqliColumn> {
 
     private final Collection<SqliColumn> columns;
     private final String name;
@@ -37,12 +36,12 @@ public class SqliTable implements SqlTable {
     }
 
     @Override
-    public Iterable<? extends SqlColumn> columns() {
+    public Iterable<SqliColumn> columns() {
         return Collections.unmodifiableCollection(this.columns);
     }
 
     @Override
-    public Optional<? extends SqlColumn> primaryKey() {
+    public Optional<SqliColumn> primaryKey() {
         return this.columns.stream().filter(c -> c.isPrimaryIndex()).findAny();
     }
 

@@ -6,13 +6,13 @@ package de.timmeey.libTimmeey.sql;
  * @version $Id:\$
  * @since 0.2
  */
-public interface SqlForeignKey {
+public interface SqlForeignKey<T extends SqlTable, C extends SqlColumn> {
 
-    SqlTable childTable();
+    T childTable();
 
-    SqlColumn childReferenceColumn();
+    C childReferenceColumn();
 
-    SqlTable parentTable();
+    T parentTable();
 
-    SqlColumn parentColumn();
+    C parentColumn();
 }

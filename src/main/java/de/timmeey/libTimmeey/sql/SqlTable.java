@@ -11,22 +11,22 @@ import java.util.stream.StreamSupport;
  * @version $Id:\$
  * @since 0.2
  */
-public interface SqlTable {
+public interface SqlTable<T extends SqlColumn> {
 
-    Iterable<? extends SqlColumn> columns();
+    Iterable<T> columns();
 
-    default Iterable<? extends SqlColumn> indexColumns() {
+    default Iterable<T> indexColumns() {
         return Collections.unmodifiableCollection(StreamSupport.stream(this
             .columns().spliterator(), false).filter(c -> c.isIndex()).collect
             (Collectors.toList()));
     }
 
-    default Optional<? extends SqlColumn> primaryKeyCoulmn() {
+    default Optional<T> primaryKeyCoulmn() {
         return StreamSupport.stream(this.columns().spliterator(), false)
             .filter(c -> c.isPrimaryIndex()).findAny();
     }
 
-    Optional<? extends SqlColumn> primaryKey();
+    Optional<T> primaryKey();
 
     String createTableQuery();
 

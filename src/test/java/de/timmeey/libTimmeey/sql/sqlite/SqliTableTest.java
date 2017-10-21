@@ -141,14 +141,14 @@ public class SqliTableTest {
     }
 
     private int update(String sql) throws SQLException {
-        System.out.println(sql);
+        //System.out.println(sql);
         val result = conn.createStatement().executeUpdate(sql);
-        System.out.println(result);
+        //System.out.println(result);
         return result;
     }
 
     private ResultSet execute(String sql) throws SQLException {
-        System.out.println(sql);
+        //System.out.println(sql);
         val result = conn.createStatement().executeQuery(sql);
         result.getMetaData().getColumnCount();
         StringBuilder sb = new StringBuilder();
@@ -157,7 +157,7 @@ public class SqliTableTest {
                 .append(": ")
                 .append(result.getString(i + 1));
         }
-        System.out.println(sb.toString());
+        //System.out.println(sb.toString());
         return result;
     }
 

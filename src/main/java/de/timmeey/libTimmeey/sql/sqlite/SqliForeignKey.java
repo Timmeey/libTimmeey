@@ -1,6 +1,5 @@
 package de.timmeey.libTimmeey.sql.sqlite;
 
-import de.timmeey.libTimmeey.sql.SqlColumn;
 import de.timmeey.libTimmeey.sql.SqlForeignKey;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -13,7 +12,7 @@ import lombok.experimental.Accessors;
  */
 @Accessors(fluent = true)
 @Getter
-public class SqliForeignKey implements SqlForeignKey {
+public class SqliForeignKey implements SqlForeignKey<SqliTable, SqliColumn> {
 
     private final SqliTable childTable, parentTable;
     private final SqliColumn childColumn, parentColumn;
@@ -47,7 +46,7 @@ public class SqliForeignKey implements SqlForeignKey {
     }
 
     @Override
-    public SqlColumn childReferenceColumn() {
+    public SqliColumn childReferenceColumn() {
         return this.childColumn();
     }
 }
