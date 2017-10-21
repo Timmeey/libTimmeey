@@ -1,6 +1,6 @@
 package de.timmeey.libTimmeey.sensor;
 
-import de.timmeey.libTimmeey.persistence.UUIDUniqueIdentifier;
+import de.timmeey.libTimmeey.printable.Printed;
 import de.timmeey.libTimmeey.sensor.reading.FkReading;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.time.ZonedDateTime;
@@ -42,7 +42,7 @@ public class FkSensor implements Sensor {
     @Override
     public Reading addReading(final double value, final ZonedDateTime datetime)
         throws Exception {
-        val result = new FkReading(new UUIDUniqueIdentifier(), value, datetime);
+        val result = new FkReading(value, datetime);
         this.persistence.add(result);
         return result;
     }
@@ -55,5 +55,10 @@ public class FkSensor implements Sensor {
     @Override
     public String unit() {
         return this.unit;
+    }
+
+    @Override
+    public Printed print(final Printed printed) {
+        return printed.with("unit", this.unit());
     }
 }

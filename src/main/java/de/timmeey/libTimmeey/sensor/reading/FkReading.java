@@ -1,6 +1,6 @@
 package de.timmeey.libTimmeey.sensor.reading;
 
-import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
+import de.timmeey.libTimmeey.printable.Printed;
 import java.time.ZonedDateTime;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -15,8 +15,11 @@ import lombok.experimental.Accessors;
 @Data
 public final class FkReading implements Reading {
 
-    private final UniqueIdentifier id;
     private final double value;
     private final ZonedDateTime datetime;
 
+    @Override
+    public Printed print(final Printed printed) {
+        throw new UnsupportedOperationException("#print()");
+    }
 }

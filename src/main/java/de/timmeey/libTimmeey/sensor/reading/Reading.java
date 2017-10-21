@@ -1,6 +1,6 @@
 package de.timmeey.libTimmeey.sensor.reading;
 
-import de.timmeey.libTimmeey.persistence.UniqueIdentifier;
+import de.timmeey.libTimmeey.printable.Printable;
 import java.time.ZonedDateTime;
 
 /**
@@ -8,9 +8,7 @@ import java.time.ZonedDateTime;
  * @author Tim Hinkes (timmeey@timmeey.de)
  * @version $Id:\$
  */
-public interface Reading {
-
-    UniqueIdentifier id();
+public interface Reading extends Printable {
 
     double value();
 

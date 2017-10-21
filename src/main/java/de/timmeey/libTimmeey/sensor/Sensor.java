@@ -1,5 +1,6 @@
 package de.timmeey.libTimmeey.sensor;
 
+import de.timmeey.libTimmeey.printable.Printable;
 import de.timmeey.libTimmeey.sensor.reading.Reading;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -10,7 +11,7 @@ import java.util.Optional;
  * @version $Id:\$
  * @since 0.1
  */
-public interface Sensor {
+public interface Sensor extends Printable {
 
     /**
      * Returns all readings of this sensor
